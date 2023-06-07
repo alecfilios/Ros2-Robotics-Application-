@@ -1,0 +1,25 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/irvine/ros2_ws/install/diff_drive_controller/include/**",
+        "/opt/ros/humble/include/**",
+        "/home/irvine/ros2_ws/src/ai_msc_robotic_systems/tt_ball_locator/include/**",
+        "/home/irvine/ros2_ws/src/ai_msc_robotic_systems/tt_racket_handling/include/**",
+        "/home/irvine/ros2_ws/src/ai_msc_robotic_systems/tt_table_explorer/include/**",
+        "/home/irvine/ros2_ws/src/ros2_controllers/diff_drive_controller/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}
