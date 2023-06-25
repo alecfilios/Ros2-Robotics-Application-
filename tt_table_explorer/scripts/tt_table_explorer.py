@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import rclpy
-
 # Lifecycles
 from rclpy.lifecycle import Node
 from rclpy.lifecycle import State
@@ -14,11 +13,8 @@ import time
 from nav2_simple_commander.robot_navigator import BasicNavigator, TaskResult, SmoothPath
 from geometry_msgs.msg import PoseStamped 
 # Poses
-'''
 import tf2_ros
 from rclpy.time import Time
-'''
-
 
 class TableExplorerNode(Node):
     
@@ -26,49 +22,36 @@ class TableExplorerNode(Node):
     #                       INIT
     # ----------------------------------------------------------------
     def __init__(self, node_name, **kwargs):
-        super().__init__(node_name, **kwargs)
-        self.client = None
-
-        # ---------------------------------------
-        #               Client
-        # ---------------------------------------
-        # Create an empty request
-        self.request = Empty.Request()
-        # Start a new thread for initializing sending the request
-        self.client_thread = Thread(target=self.init_client_thread_callback)
-        self.client_thread.start()
-
-        # ---------------------------------------
-        #               Poses
-        # ---------------------------------------
-        '''
-        self.tf_buffer = tf2_ros.Buffer()
-        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
-        # Start a new thread for to get the poses
-        self.poses_thread = Thread(target=self.get_poses_thread_callback)
-        self.poses_thread.start()        
-        '''
-
-
-        # ---------------------------------------
-        #               Nav
-        # ---------------------------------------
-        # Launch the ROS 2 Navigation Stack
-        self.navigator = BasicNavigator()
-        # Wait for navigation to fully activate. Use this line if autostart is set to true.
-        self.navigator.waitUntilNav2Active()
-        self.navigation_thread = Thread(target=self.reach_all_goals_thread_callback)
-
-    # ----------------------------------------------------------------
-    #                       LIFECYCLES
-    # ----------------------------------------------------------------
+        super().__init__(node_name, **kwargs) 
+    ###############################################################################################################################
+    #                                                   LIFECYCLES
+    ###############################################################################################################################
     def on_configure(self, state: State) -> TransitionCallbackReturn:
         self.get_logger().info("on_configure() is called.")
         return TransitionCallbackReturn.SUCCESS
 
     def on_activate(self, state: State) -> TransitionCallbackReturn:
         self.get_logger().info("on_activate() is called.")
-
+        # ---------------------------------------
+        #               Client
+        # ---------------------------------------
+        self.client = None
+        # Create an empty request
+        self.request = Empty.Request()
+        # Start a new thread for initializing sending the request
+        self.client_thread = Thread(target=self.init_client_thread_callback)
+        self.client_thread.start()
+        # ---------------------------------------
+        #               Poses
+        # ---------------------------------------
+        self.tf_buffer = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)  
+        # ---------------------------------------
+        #               Nav
+        # ---------------------------------------
+        # Launch the ROS 2 Navigation Stack
+        self.navigator = BasicNavigator()
+        self.navigation_thread = Thread(target=self.reach_all_goals_thread_callback)
         # Here starts the fun :)
         self.navigation_thread.start()
 
@@ -86,75 +69,123 @@ class TableExplorerNode(Node):
         self.get_logger().info('on_shutdown() is called.')
         return TransitionCallbackReturn.SUCCESS
     
-    # ----------------------------------------------------------------
-    #                       THREADS
-    # ----------------------------------------------------------------
-    def init_client_thread_callback(self):   
-        # Create a client for the service
-        self.client = self.create_client(Empty, '/tt_umpire/assignment2/i_feel_confident')
+    ###############################################################################################################################
+    #                                                       THREADS
+    ###############################################################################################################################
 
+    # ---------------------------------------
+    #               Client
+    # ---------------------------------------    
+    def init_client_thread_callback(self):   
+        # Create a client for the serviceself.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)  
+        self.client = self.create_client(Empty, '/tt_umpire/assignment2/i_feel_confident')
+        self.get_logger().info('[Client]: Waiting for service to become available, waiting...')
         # Wait for the service to be available
         while not self.client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('Service not available, waiting...')
-        self.get_logger().info('Success! Service is available..!')
-    '''
-    def get_poses_thread_callback(self):
+            pass #self.get_logger().info('[Client]: Waiting...')
+
+        self.get_logger().info('[Client]: Success! Service is available..!')
+
+
+    # ---------------------------------------
+    #               Nav
+    # ---------------------------------------
+
+    def reach_all_goals_thread_callback(self):  
+
+        #self.get_poses()
+
+        self.get_logger().info('[Nav]: Waiting until Nav2 is active...')
+        # Wait for navigation to fully activate. Use this line if autostart is set to true.
+        self.navigator.waitUntilNav2Active()
+        self.get_logger().info('[Nav]: Success! Nav2 is active..!')
+
+        # Setup the transforms based on the goals printed      
+        if(False):
+            self.method_1()
+        else:
+            self.method_2()
+
+
+    def method_1(self):
+        x_positions = [2.607, 2.607, 4.7, 0.58]
+        y_positions = [1.4525,  -1.4525, 0.0,  0.0]
+
+        x_pos_offsets = [0.0, 0,0, 0.0, -0.0]
+        y_pos_offsets = [0.0, -0.0, 0.0 , 0.0]
+
+        z_rotations = [-0.707, 0.707, 1.0, 0.0]
+        w_rotations = [0.707, 0.707, 0.0, 1.0]
+
+        for i in range(x_positions.count):
+            
+            #self.get_logger().info(f'[Nav]: Pose{i}:')
+            #self.get_logger().info(f'[Nav]: Pos X={self.poses[i].transform.translation.x} + {x_pos_offsets[i]}')
+            #self.get_logger().info(f'[Nav]: Pos Y={self.poses[i].transform.translation.y} + {y_pos_offsets[i]}')
+            #self.get_logger().info(f'[Nav]: Rot Z={z_rotations[i]}')
+            #self.get_logger().info(f'[Nav]: Rot Z={w_rotations[i]}')
+
+            self.reach_goal(x_positions[i] + x_pos_offsets[i],  
+                            y_positions[i] + y_pos_offsets[i], 
+                            0.0,                                  
+                            0.0,                                   
+                            0.0,                                   
+                            z_rotations[i],   
+                            w_rotations[i]    
+                            )
+    def method_2(self):
+
+
+        # Poses
+        poses = []
+
+        # ---------X-----offset---Y-----offest--Z-----W----------
+        goal_1 = [2.607,   0.0,  1.4525,  0.2, -0.707, 0.707]
+
+        goal_2 = [2.607,   0.0, -1.4525, -0.2,  0.707, 0.707]
+
+        goal_3 = [4.700,   0.0,  0.0000,  -0.1,  1.000, 0.000]
+
+        goal_4 = [0.580,   0.0,  0.0000,  -0.1,  0.000, 1.000]
+
+        poses = [goal_1, goal_2, goal_3, goal_4]
+
+        for i in range(4):
+            self.reach_goal(poses[i][0] + poses[i][1],  
+                            poses[i][2] + poses[i][3], 
+                            0.0,                                  
+                            0.0,                                   
+                            0.0,                                   
+                            poses[i][4],   
+                            poses[i][5]    
+                            )
+
+
+    def get_poses(self):
+        self.get_logger().info('[Poses]: Waiting for the Goal Transforms to become available...')
         while(not self.tf_buffer.can_transform("map", "tt_table_boundary_1_link", Time())):
-            self.get_logger().info('Waiting for the Goal Transforms to become available...')
-            rclpy.spin_once(self, timeout_sec=0.1)
-        
+            rclpy.spin_once(self, timeout_sec=1.0)
+        self.get_logger().info('[Poses]: Success the Goal Transforms are available..!')
+
+        # Get the poses/goals
         self.poses = []
         for i in range(1,5):
             pose = self.tf_buffer.lookup_transform("map", "tt_table_boundary_" + str(i) + "_link", Time())
             self.poses.append(pose)
-            self.get_logger().info(f'Received Goal {str(i)} succesfully..!')    
-    '''
+            self.get_logger().info(f'Received Goal {str(i)} succesfully..!')     
+    
 
-
-    def reach_all_goals_thread_callback(self):  
-
-        # Helper 1
-        self.reach_goal(0.0, 1.75, 0.0, 0.0, 0.0, 0.0, 1.0, False)
-
-        # Goal 1 (-90 degrees turn)
-        self.reach_goal(2.64, 1.5, 0.0, 0.0, 0.0, -0.707, 0.707, True)
-
-        # Helper 2
-        self.reach_goal(4.4, 1.5, 0.0, 0.0, 0.0, -0.707, 0.707, False)
-
-        # Helper 3
-        self.reach_goal(4.4, -1.25, 0.0, 0.0, 0.0, 1.0, 0.0, False)
-
-        # Goal 2 (90 degrees turn)
-        self.reach_goal(2.64, -1.5, 0.0, 0.0, 0.0, 0.707, 0.707, True)
-
-        # Helper 4
-        self.reach_goal(4.3, -1.25, 0.0, 0.0, 0.0, 0.0, 1.0, False)
-
-        # Goal 3 (180 degrees turn)
-        self.reach_goal(4.4, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, True)
-
-        # Helper 5 (same as 3)
-        self.reach_goal(4.4, -1.25, 0.0, 0.0, 0.0, 1.0, 0.0, False)
-
-        # Helper 6
-        self.reach_goal(0.5, 1.65, 0.0, 0.0, 0.0, 1.0, 0.0, False)
-
-        # Goal 4 (0 degrees turn)
-        self.reach_goal(0.75, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, True)
-
-    # ----------------------------------------------------------------
-    #                       MOVEMENT/REQUESTS
-    # ----------------------------------------------------------------
-    def reach_goal(self, pos_x, pos_y, pos_z, orient_x, orient_y, orient_z, orient_w, isGoal):
+    ###############################################################################################################################3#
+    #                                              MOVEMENT/REQUESTS
+    ###############################################################################################################################
+    def reach_goal(self, pos_x, pos_y, pos_z, orient_x, orient_y, orient_z, orient_w):
 
         result = self.move_robot_to_goal(pos_x, pos_y, pos_z, orient_x, orient_y, orient_z, orient_w)
 
         if result == TaskResult.SUCCEEDED:
             self.get_logger().info('Goal succeeded!')
-            # Send the request to get the sweet points
-            if(isGoal):
-                self.send_request()
+            # Send the request to get the sweet points          
+            self.send_request()
         elif result == TaskResult.CANCELED:
             self.get_logger().info('Goal was canceled!')
         elif result == TaskResult.FAILED:
@@ -188,11 +219,15 @@ class TableExplorerNode(Node):
 
         # Keep doing stuff as long as the robot is moving towards the goal
         while not self.navigator.isTaskComplete():
-            time. sleep(0.1)
+            time. sleep(1.0)
 
         # Get the result of the movement
         result = self.navigator.getResult()
         return result
+    
+###############################################################################################################################
+#                                                    MAIN
+###############################################################################################################################
 
 def main():
     rclpy.init()

@@ -11,6 +11,6 @@ def generate_launch_description():
         Node(
             package='tt_table_explorer',           
             executable='tt_table_explorer.py',
-            name='table_explorer_node',
-        ),
+            name='table_explorer_node'
+        )
     ])
