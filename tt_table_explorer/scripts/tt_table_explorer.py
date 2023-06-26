@@ -93,74 +93,29 @@ class TableExplorerNode(Node):
 
     def reach_all_goals_thread_callback(self):  
 
-        #self.get_poses()
+        # Get the tfs
+        self.get_poses()
 
         self.get_logger().info('[Nav]: Waiting until Nav2 is active...')
         # Wait for navigation to fully activate. Use this line if autostart is set to true.
         self.navigator.waitUntilNav2Active()
         self.get_logger().info('[Nav]: Success! Nav2 is active..!')
 
-        # Setup the transforms based on the goals printed      
-        if(False):
-            self.method_1()
-        else:
-            self.method_2()
-
-
-    def method_1(self):
-        x_positions = [2.607, 2.607, 4.7, 0.58]
-        y_positions = [1.4525,  -1.4525, 0.0,  0.0]
-
-        x_pos_offsets = [0.0, 0,0, 0.0, -0.0]
-        y_pos_offsets = [0.0, -0.0, 0.0 , 0.0]
-
+        x_offsets = [0.067, 0.067, 0.700, -0.700]
+        y_offsets = [0.9, -0.9, -0.1, -0.1]
         z_rotations = [-0.707, 0.707, 1.0, 0.0]
         w_rotations = [0.707, 0.707, 0.0, 1.0]
 
-        for i in range(x_positions.count):
-            
-            #self.get_logger().info(f'[Nav]: Pose{i}:')
-            #self.get_logger().info(f'[Nav]: Pos X={self.poses[i].transform.translation.x} + {x_pos_offsets[i]}')
-            #self.get_logger().info(f'[Nav]: Pos Y={self.poses[i].transform.translation.y} + {y_pos_offsets[i]}')
-            #self.get_logger().info(f'[Nav]: Rot Z={z_rotations[i]}')
-            #self.get_logger().info(f'[Nav]: Rot Z={w_rotations[i]}')
-
-            self.reach_goal(x_positions[i] + x_pos_offsets[i],  
-                            y_positions[i] + y_pos_offsets[i], 
+        for i in range(4):
+            self.reach_goal(float(self.poses[i].transform.translation.x) + x_offsets[i],
+                            float(self.poses[i].transform.translation.y) + y_offsets[i], 
                             0.0,                                  
                             0.0,                                   
                             0.0,                                   
                             z_rotations[i],   
                             w_rotations[i]    
                             )
-    def method_2(self):
-
-
-        # Poses
-        poses = []
-
-        # ---------X-----offset---Y-----offest--Z-----W----------
-        goal_1 = [2.607,   0.1,  1.4525,  0.2, -0.707, 0.707]
-
-        goal_2 = [2.607,   0.1, -1.4525, -0.2,  0.707, 0.707]
-
-        goal_3 = [4.700,   0.0,  0.0000,  -0.1,  1.000, 0.000]
-
-        goal_4 = [0.580,   0.0,  0.0000,  -0.1,  0.000, 1.000]
-
-        poses = [goal_1, goal_2, goal_3, goal_4]
-
-        for i in range(4):
-            self.reach_goal(poses[i][0] + poses[i][1],  
-                            poses[i][2] + poses[i][3], 
-                            0.0,                                  
-                            0.0,                                   
-                            0.0,                                   
-                            poses[i][4],   
-                            poses[i][5]    
-                            )
-
-
+            
     def get_poses(self):
         self.get_logger().info('[Poses]: Waiting for the Goal Transforms to become available...')
         while(not self.tf_buffer.can_transform("map", "tt_table_boundary_1_link", Time())):
